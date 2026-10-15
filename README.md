@@ -47,6 +47,11 @@ HydroCon/
 │   ├── sensor_node/        # Water quality sensing (ESP32)
 │   ├── dose_node/          # Dosing pump control (ESP32)
 │   └── growth_node/        # Camera + environment sensing (ESP32-CAM)
+├── controller/             # Raspberry Pi fuzzy logic controller (Python)
+│   ├── hydrocon/           # fuzzy engine, EC/pH controllers, MQTT service
+│   ├── tests/
+│   ├── simulate.py         # closed-loop simulation for tuning
+│   └── config.yaml         # setpoints, pump limits, MQTT
 ├── ml/
 │   ├── train_growth_stage_model.py
 │   └── requirements.txt
@@ -66,6 +71,7 @@ HydroCon/
 | `nft/growth_node/image` | node → Pi | Base64-encoded plant image |
 | `nft/growth_node/cmd` | Pi → node | Capture / stream commands |
 | `nft/growth_node/stream_url` | node → Pi | Live camera stream URL |
+| `nft/controller/status` | Pi → dashboards | Latest controller decision (retained) |
 
 ## Getting started
 
@@ -86,9 +92,17 @@ python train_growth_stage_model.py --data-dir path/to/batavia_dataset_labeled --
 
 The dataset should be in `ImageFolder` format, with one sub-folder per growth stage. The script saves model checkpoints, `class_names.json`, a confusion matrix and the training loss curve to the output folder.
 
-### 3. Controller
+### 3. Controller (Raspberry Pi)
 
-Install Mosquitto on the Raspberry Pi (`sudo apt install mosquitto mosquitto-clients`) and make sure every node's `MQTT_SERVER` points to the Pi's IP address.
+Install Mosquitto on the Pi (`sudo apt install mosquitto mosquitto-clients`) and make sure every node's `MQTT_SERVER` points to the Pi's IP address. Then set up the fuzzy logic controller:
+
+```bash
+cd controller
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+.venv/bin/python -m hydrocon.main --config config.yaml --dry-run
+```
+
+See [controller/README.md](controller/README.md) for how the fuzzy rules work, tuning, the simulator and running it as a service.
 
 ## License
 
