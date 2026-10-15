@@ -1,0 +1,24 @@
+# Credentials (copy secrets.example.h -> secrets.h)
+secrets.h
+
+# ML outputs and datasets
+models/
+data/
+*.pt
+*.pth
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Arduino / PlatformIO build output
+build/
+.pio/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
