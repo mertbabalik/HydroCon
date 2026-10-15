@@ -1,0 +1,68 @@
+# HydroCon controller configuration
+# Tune setpoints and pump times to your reservoir before running without --dry-run.
+
+mqtt:
+  host: localhost          # Mosquitto runs on the Pi itself
+  port: 1883
+  username: ""
+  password: ""
+  topics:
+    sensor: nft/sensor_node/sensors
+    dose_status: nft/dose_node/sensors
+    dose_command: nft/dose_node/relays
+    growth_stream: nft/growth_node/stream_url
+    growth_image: nft/growth_node/image
+    growth_cmd: nft/growth_node/cmd
+    status: nft/controller/status
+
+# Targets per growth stage (Batavia lettuce starting points; EC in mS/cm)
+setpoints:
+  seedling:   { ec: 0.8, ph: 6.0 }
+  vegetative: { ec: 1.2, ph: 5.9 }
+  harvest:    { ec: 1.4, ph: 6.0 }
+
+control:
+  interval_seconds: 30       # how often a decision is made
+  trend_window_seconds: 600  # readings used for trend (and median)
+  median_samples: 5          # median of the last N readings
+  min_readings: 5            # wait for this many readings before acting
+  max_data_age_seconds: 60   # skip if the sensor node has gone quiet
+  dry_run: false             # same as --dry-run
+
+dosing:
+  max_seconds:
+    nutrient: 10             # A and B each, at fuzzy output 1.0
+    ph: 3                    # pH up/down at fuzzy output 1.0
+  min_output: 0.1            # fuzzy outputs below this mean "no dose"
+  min_pump_seconds: 0.5      # shorter pulses are skipped
+  pump_gap_seconds: 5        # pause between A and B
+  mixing_seconds: 300        # no new dose until the last one has mixed in
+  ec_high_warning: 0.3       # warn when EC exceeds target by this much
+  daily_limit_seconds:
+    A: 120
+    B: 120
+    PH_UP: 30
+    PH_DOWN: 30
+
+safety:                      # readings outside these are treated as sensor faults
+  ph_min: 3.0
+  ph_max: 10.0
+  ec_min: 0.0
+  ec_max: 5.0
+  temp_min: 0.0
+  temp_max: 45.0
+  ph_alarm_low: 5.0          # logged as warnings
+  ph_alarm_high: 7.0
+
+growth:
+  initial_stage: seedling    # used until the classifier agrees on a stage
+  use_classifier: true
+  model_path: models/growth_stage_full_model.pt
+  class_names_path: models/class_names.json
+  interval_seconds: 3600     # classify one photo per hour
+  votes: 5                   # majority of the last N predictions sets the stage
+  min_confidence: 0.6
+  stream_url: ""             # e.g. http://192.168.1.50/stream (else learned from MQTT)
+
+logging:
+  csv_path: data/controller_log.csv

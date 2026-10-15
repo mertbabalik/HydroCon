@@ -1,0 +1,4 @@
+paho-mqtt>=2.0
+PyYAML>=6.0
+# Optional, for growth stage classification on the Pi:
+# torch, torchvision, pillow
